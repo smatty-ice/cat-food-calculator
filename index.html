@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kiki & Rainier Food Calculator</title>
+<style>
+  :root {
+    --bg: #faf9f6;
+    --surface: #ffffff;
+    --text: #1a1a1a;
+    --text-secondary: #6b6b6b;
+    --text-tertiary: #9a9a9a;
+    --border: rgba(0,0,0,0.08);
+    --border-strong: rgba(0,0,0,0.15);
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --kiki-bg: #FBEAF0;
+    --kiki-fg: #72243E;
+    --kiki-fg-dark: #4B1528;
+    --rainier-bg: #E6F1FB;
+    --rainier-fg: #0C447C;
+    --rainier-fg-dark: #042C53;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1a1a;
+      --surface: #242424;
+      --text: #f0f0f0;
+      --text-secondary: #a8a8a8;
+      --text-tertiary: #6a6a6a;
+      --border: rgba(255,255,255,0.1);
+      --border-strong: rgba(255,255,255,0.2);
+      --kiki-bg: #4B1528;
+      --kiki-fg: #F4C0D1;
+      --kiki-fg-dark: #FBEAF0;
+      --rainier-bg: #042C53;
+      --rainier-fg: #B5D4F4;
+      --rainier-fg-dark: #E6F1FB;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 2rem 1rem;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  .container { max-width: 680px; margin: 0 auto; }
+  h1 { font-size: 22px; font-weight: 500; margin: 0 0 0.5rem; }
+  .subtitle { font-size: 14px; color: var(--text-secondary); margin: 0 0 2rem; }
+  .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1.25rem; }
+  @media (max-width: 520px) { .cat-grid { grid-template-columns: 1fr; } }
+  .cat-card { background: var(--surface); border-radius: var(--radius-lg); border: 0.5px solid var(--border); padding: 1rem; }
+  .cat-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 500; font-size: 13px; }
+  .avatar.kiki { background: var(--kiki-bg); color: var(--kiki-fg); }
+  .avatar.rainier { background: var(--rainier-bg); color: var(--rainier-fg); }
+  .cat-name { font-weight: 500; font-size: 14px; margin: 0; }
+  .cat-age { font-size: 12px; color: var(--text-secondary); margin: 0; }
+  label { font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 4px; }
+  .slider-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  input[type="range"] { flex: 1; accent-color: var(--text); }
+  .slider-value { font-size: 13px; font-weight: 500; min-width: 32px; text-align: right; }
+  select { width: 100%; padding: 6px 8px; border: 0.5px solid var(--border-strong); border-radius: var(--radius-md); background: var(--surface); color: var(--text); font-size: 13px; margin-bottom: 10px; font-family: inherit; }
+  .cans-control { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-md); padding: 12px 16px; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 12px; }
+  .cans-label { font-size: 13px; color: var(--text-secondary); flex: 1; }
+  .cans-control input[type="range"] { width: 100px; flex: none; }
+  .cans-value { font-size: 14px; font-weight: 500; min-width: 12px; text-align: right; }
+  .results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 520px) { .results-grid { grid-template-columns: 1fr; } }
+  .result-card { border-radius: var(--radius-lg); padding: 14px 16px; }
+  .result-card.kiki { background: var(--kiki-bg); color: var(--kiki-fg-dark); }
+  .result-card.rainier { background: var(--rainier-bg); color: var(--rainier-fg-dark); }
+  .result-header { font-size: 12px; margin: 0 0 4px; font-weight: 500; }
+  .result-card.kiki .result-header { color: var(--kiki-fg); }
+  .result-card.rainier .result-header { color: var(--rainier-fg); }
+  .kcal-display { display: flex; align-items: baseline; gap: 6px; margin-bottom: 10px; }
+  .kcal-number { font-size: 22px; font-weight: 500; }
+  .kcal-label { font-size: 13px; }
+  .result-card.kiki .kcal-label { color: var(--kiki-fg); }
+  .result-card.rainier .kcal-label { color: var(--rainier-fg); }
+  table { width: 100%; font-size: 13px; border-collapse: collapse; }
+  td { padding: 3px 0; }
+  .result-card.kiki td.label-cell { color: var(--kiki-fg); }
+  .result-card.rainier td.label-cell { color: var(--rainier-fg); }
+  td.value-cell { text-align: right; }
+  td.value-cell.bold { font-weight: 500; }
+  .footnote { font-size: 11px; color: var(--text-tertiary); margin: 16px 0 0; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Kiki &amp; Rainier daily food</h1>
+<p class="subtitle">Pro Plan LiveClear Salmon &amp; Rice dry + Complete Essentials gravy wet</p>
+
+<div class="cat-grid">
+  <div class="cat-card">
+    <div class="cat-header">
+      <div class="avatar kiki">K</div>
+      <div>
+        <p class="cat-name">Kiki</p>
+        <p class="cat-age">6 yrs</p>
+      </div>
+    </div>
+    <label>Weight (lbs)</label>
+    <div class="slider-row">
+      <input type="range" id="kiki-weight" min="6" max="18" step="0.1" value="14.2" />
+      <span id="kiki-weight-out" class="slider-value">14.2</span>
+    </div>
+    <label>Goal</label>
+    <select id="kiki-goal">
+      <option value="loss">Weight loss</option>
+      <option value="maintain" selected>Maintain</option>
+      <option value="gain">Gain</option>
+    </select>
+    <label>Activity</label>
+    <select id="kiki-activity">
+      <option value="low" selected>Low / indoor</option>
+      <option value="med">Moderate</option>
+      <option value="high">High / playful</option>
+    </select>
+  </div>
+  <div class="cat-card">
+    <div class="cat-header">
+      <div class="avatar rainier">R</div>
+      <div>
+        <p class="cat-name">Rainier</p>
+        <p class="cat-age">2 yrs</p>
+      </div>
+    </div>
+    <label>Weight (lbs)</label>
+    <div class="slider-row">
+      <input type="range" id="rainier-weight" min="5" max="14" step="0.1" value="8.7" />
+      <span id="rainier-weight-out" class="slider-value">8.7</span>
+    </div>
+    <label>Goal</label>
+    <select id="rainier-goal">
+      <option value="loss">Weight loss</option>
+      <option value="maintain" selected>Maintain</option>
+      <option value="gain">Gain</option>
+    </select>
+    <label>Activity</label>
+    <select id="rainier-activity">
+      <option value="low">Low / indoor</option>
+      <option value="med" selected>Moderate</option>
+      <option value="high">High / playful</option>
+    </select>
+  </div>
+</div>
+
+<div class="cans-control">
+  <span class="cans-label">Wet cans per cat per day</span>
+  <input type="range" id="cans-per-cat" min="0" max="2" step="1" value="1" />
+  <span id="cans-out" class="cans-value">1</span>
+</div>
+
+<div class="results-grid">
+  <div class="result-card kiki">
+    <p class="result-header">KIKI &middot; DAILY</p>
+    <div class="kcal-display">
+      <span id="kiki-kcal" class="kcal-number">280</span>
+      <span class="kcal-label">kcal target</span>
+    </div>
+    <table>
+      <tr><td class="label-cell">Wet</td><td class="value-cell"><span id="kiki-cans">1</span> can</td></tr>
+      <tr><td class="label-cell">Dry</td><td class="value-cell bold"><span id="kiki-dry-cups">0.37</span> cup</td></tr>
+      <tr><td class="label-cell">Dry (grams)</td><td class="value-cell"><span id="kiki-dry-g">49</span> g</td></tr>
+      <tr><td class="label-cell">Dry per meal (2&times;)</td><td class="value-cell"><span id="kiki-dry-meal">3</span> tbsp</td></tr>
+    </table>
+  </div>
+  <div class="result-card rainier">
+    <p class="result-header">RAINIER &middot; DAILY</p>
+    <div class="kcal-display">
+      <span id="rainier-kcal" class="kcal-number">235</span>
+      <span class="kcal-label">kcal target</span>
+    </div>
+    <table>
+      <tr><td class="label-cell">Wet</td><td class="value-cell"><span id="rainier-cans">1</span> can</td></tr>
+      <tr><td class="label-cell">Dry</td><td class="value-cell bold"><span id="rainier-dry-cups">0.29</span> cup</td></tr>
+      <tr><td class="label-cell">Dry (grams)</td><td class="value-cell"><span id="rainier-dry-g">39</span> g</td></tr>
+      <tr><td class="label-cell">Dry per meal (2&times;)</td><td class="value-cell"><span id="rainier-dry-meal">2</span> tbsp</td></tr>
+    </table>
+  </div>
+</div>
+
+<p class="footnote">Dry: Pro Plan LiveClear Salmon &amp; Rice (561 kcal/cup, 133 g/cup). Wet: Pro Plan Complete Essentials Chicken &amp; Turkey gravy (~72 kcal/3oz can). 1 cup &asymp; 16 tbsp; 1 tbsp dry &asymp; 8 g. Math: RER = 70 &times; kg^0.75, multiplied by goal &times; activity factor.</p>
+</div>
+
+<script>
+(function(){
+  const factors = {
+    loss:     { low: 0.8, med: 0.9, high: 1.0 },
+    maintain: { low: 1.0, med: 1.2, high: 1.4 },
+    gain:     { low: 1.2, med: 1.4, high: 1.6 }
+  };
+  const DRY_KCAL_CUP = 561;
+  const DRY_G_CUP = 133;
+  const WET_KCAL_CAN = 72;
+
+  function kcalForCat(lbs, goal, activity){
+    const kg = lbs / 2.20462;
+    const rer = 70 * Math.pow(kg, 0.75);
+    return rer * factors[goal][activity];
+  }
+
+  function update(){
+    const cans = parseInt(document.getElementById('cans-per-cat').value);
+    document.getElementById('cans-out').textContent = cans;
+
+    ['kiki','rainier'].forEach(name => {
+      const lbs = parseFloat(document.getElementById(name+'-weight').value);
+      const goal = document.getElementById(name+'-goal').value;
+      const act = document.getElementById(name+'-activity').value;
+      document.getElementById(name+'-weight-out').textContent = lbs.toFixed(1);
+
+      const kcalTarget = kcalForCat(lbs, goal, act);
+      const wetKcal = cans * WET_KCAL_CAN;
+      const dryKcal = Math.max(0, kcalTarget - wetKcal);
+      const dryCups = dryKcal / DRY_KCAL_CUP;
+      const dryG = dryCups * DRY_G_CUP;
+      const dryTbspPerMeal = (dryCups * 16) / 2;
+
+      document.getElementById(name+'-kcal').textContent = Math.round(kcalTarget);
+      document.getElementById(name+'-cans').textContent = cans;
+      document.getElementById(name+'-dry-cups').textContent = dryCups.toFixed(2);
+      document.getElementById(name+'-dry-g').textContent = Math.round(dryG);
+      document.getElementById(name+'-dry-meal').textContent = dryTbspPerMeal.toFixed(1);
+    });
+  }
+
+  ['kiki','rainier'].forEach(name => {
+    document.getElementById(name+'-weight').addEventListener('input', update);
+    document.getElementById(name+'-goal').addEventListener('change', update);
+    document.getElementById(name+'-activity').addEventListener('change', update);
+  });
+  document.getElementById('cans-per-cat').addEventListener('input', update);
+  update();
+})();
+</script>
+</body>
+</html>
